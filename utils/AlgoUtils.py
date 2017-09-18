@@ -1,3 +1,8 @@
+"""
+Module for Algorithm convenience functions to do grid search,
+False Positive and False Negative analysis
+"""
+
 import pandas as pd
 import numpy as np
 
@@ -22,6 +27,9 @@ algo_str_dict = {
 }
 
 def recall_precision_f1(cm):
+    """
+    Given Confusion Matrix (cm), outputs recall, precision and f1 score
+    """
     TN = cm[0][0]
     TP = cm[1][1] + 0.001  #To make sure denomintor is not zero
     FN = cm[1][0]
@@ -35,6 +43,9 @@ def recall_precision_f1(cm):
     return (recall_tpr, precision, f1)
 
 def cv_roc_auc_accuracy(clf, X, y, cv=10):
+    """
+    Cross validation roc_auc and accuracy scores
+    """
     roc_auc = cross_val_score(clf, X, y, cv=10, scoring='roc_auc').mean()
     cv_accuracy = cross_val_score(clf, X, y, cv=10, scoring='accuracy').mean()
     print "Cross-val-score(roc_auc) = %0.2f"%roc_auc
@@ -42,6 +53,10 @@ def cv_roc_auc_accuracy(clf, X, y, cv=10):
     return (round(roc_auc, 2), round(cv_accuracy, 2))
 
 def cm_accuracy_rpf1(y_test, y_pred):
+    """
+    Returns accuracy, recall, precision, f1 scores
+    for a given y_test (known values) vs y_pred (predicted values)
+    """
     accuracy = metrics.accuracy_score(y_test, y_pred)
     print "Accuracy = %0.2f"%accuracy
     print "Confusion Matrix"
@@ -51,6 +66,9 @@ def cm_accuracy_rpf1(y_test, y_pred):
     return (round(accuracy, 2), round(recall, 2), round(precision, 2), round(f1, 2))
 
 def do_clf(tdf, algo, algo_dd, fcols, resp):
+    """
+    Convinience function to do classification and reporting Cross Validation Scores
+    """
     clf = algo(**algo_dd)
     X = tdf[fcols]
     y = tdf[resp]
@@ -58,6 +76,10 @@ def do_clf(tdf, algo, algo_dd, fcols, resp):
     return (roc_auc, accuracy, recall, precision, f1) 
 
 def run_algo_analysis(df_sfeature, sfeature, fcols, algos_str, algos_dd):
+    """
+    Convenience function for doing custom grid search
+    Returns dataframe with outputs of each run
+    """
     ll = list()
     for fcol in fcols:
         ffcols = map(lambda x: sfeature + x, fcol.split(":")) 
@@ -75,7 +97,9 @@ def run_algo_analysis(df_sfeature, sfeature, fcols, algos_str, algos_dd):
     return dfresults
 
 def do_clf_validate(tdf, algo_str,algo_dd, fcols, resp, random_state=4):
-    #Simple train-test to get confusion matrix, recall, precision..
+    """
+    Convenience function to do misprediction (FP and FN) analysis
+    """
     algo = algo_str_dict[algo_str]
     clf = algo(**algo_dd)
     X = tdf[fcols]
@@ -89,6 +113,9 @@ def do_clf_validate(tdf, algo_str,algo_dd, fcols, resp, random_state=4):
     return analysisdf
 
 def cv_roc_auc_accuracy_recall_precision(clf, X, y, cv=10):
+    """
+    More robust performance results
+    """
     roc_auc = cross_val_score(clf, X, y, cv=10, scoring='roc_auc').mean()
     cv_accuracy = cross_val_score(clf, X, y, cv=10, scoring='accuracy').mean()
     recall = cross_val_score(clf, X, y, cv=10, scoring='recall').mean()
